@@ -36,10 +36,9 @@ use crate::il2cpp::{
 use crate::il2cpp::hook::UnityEngine_CoreModule::QualitySettings;
 #[cfg(target_os = "windows")]
 use crate::windows::free_camera::{self, FreeCameraMode};
-#[cfg(target_os = "windows")]
-use super::game::Region;
 
 use super::{
+    game::Region,
     hachimi::{self, Language, REPO_PATH, WEBSITE_URL},
     http::{ureq_config, AsyncRequest},
     live_utils,
@@ -2692,6 +2691,12 @@ impl ConfigEditor {
                     ui.checkbox(&mut config.windows.taskbar_show_progress_on_connecting, "");
                     ui.end_row();
                 }
+
+                if should_show_option(search, &t!("config_editor.taskbar_show_progress_on_schedule_book")) {
+                    ui.label(t!("config_editor.taskbar_show_progress_on_schedule_book"));
+                    ui.checkbox(&mut config.windows.taskbar_show_progress_on_schedule_book, "");
+                    ui.end_row();
+                }
             }
 
             #[cfg(target_os = "windows")]
@@ -2991,7 +2996,7 @@ impl ConfigEditor {
                 ui.end_row();
             }
 
-            if should_show_option(search, &t!("config_editor.skill_info_dialog")) {
+            if should_show_option(search, &t!("config_editor.skill_info_dialog")) && Hachimi::instance().game.region != Region::Global {
                 ui.label(t!("config_editor.skill_info_dialog"));
                 ui.checkbox(&mut config.skill_info_dialog, "");
                 ui.end_row();

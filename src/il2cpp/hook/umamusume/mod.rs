@@ -116,6 +116,8 @@ mod HorseData;
 pub mod HorseRaceInfo;
 #[cfg(target_os = "windows")]
 mod HorseRaceInfoReplay;
+#[cfg(target_os = "windows")]
+mod PartsScheduleBookAutoPlayScreen;
 pub mod TweenAnimationTimelineComponent;
 pub mod TweenAnimationTimelineData;
 pub mod TweenAnimationTimelineSheetData;
@@ -159,6 +161,8 @@ mod LiveTheaterInfo;
 pub mod DownloadPathRegister;
 pub mod SceneDefine;
 pub mod GameDefine;
+pub mod MasterDataManager;
+pub mod MasterItemExchangeTop;
 
 pub fn init() {
     get_assembly_image_or_return!(image, "umamusume.dll");
@@ -263,6 +267,7 @@ pub fn init() {
         HorseRaceInfo::init(image);
         HorseRaceInfoReplay::init(image);
         TitleViewController::init(image);
+        PartsScheduleBookAutoPlayScreen::init(image);
     }
     CameraData::init(image);
     TweenAnimationTimelineComponent::init(image);
@@ -296,4 +301,6 @@ pub fn init() {
     DownloadPathRegister::init(image);
     SceneDefine::init(image);
     GameDefine::init(image);
+    MasterDataManager::init(image);
+    MasterItemExchangeTop::init(image);
 }
