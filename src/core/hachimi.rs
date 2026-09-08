@@ -15,6 +15,7 @@ pub const CODEBERG_API: &str = "https://codeberg.org/api/v1/repos";
 pub const WEBSITE_URL: &str = "https://hachimi.noccu.art";
 pub const UMAPATCHER_PACKAGE_NAME: &str = "com.leadrdrk.umapatcher.edge";
 pub const UMAPATCHER_INSTALL_URL: &str = "https://github.com/kairusds/UmaPatcher-Edge/releases/latest";
+pub const RACE_MECHANICS_URL: &str = "https://docs.google.com/document/d/15VzW9W2tXBBTibBRbZ8IVpW6HaMX8H0RP03kq6Az7Xg";
 
 static mut ORIG_SQLITE3_OPEN_V2: Option<extern "C" fn(*const i8, *mut *mut std::ffi::c_void, i32, *const i8) -> i32> = None;
 static mut ORIG_SQLITE3_KEY: Option<extern "C" fn(*mut std::ffi::c_void, *const std::ffi::c_void, i32) -> i32> = None;
@@ -752,8 +753,36 @@ pub struct Config {
     pub disable_skill_name_translation: bool,
     #[serde(default)]
     pub hide_ingame_ui_hotkey: bool,
+    #[serde(default)]
+    pub race_stat_hud: bool,
+    #[serde(default)]
+    pub race_stat_hud_toggle_button: bool,
+    #[serde(default)]
+    pub race_stat_had_autoscroll_0: bool,
+    #[serde(default)]
+    pub race_stat_had_autoscroll_1: bool,
+    #[serde(default)]
+    pub race_stat_hud_draggable: bool,
+    #[serde(default)]
+    pub race_stat_hud_draggable_save: bool,
+    #[serde(default = "Config::default_race_stat_hud_drag_x")]
+    pub race_stat_hud_drag_x: f32,
+    #[serde(default = "Config::default_race_stat_hud_drag_y")]
+    pub race_stat_hud_drag_y: f32,
+    #[serde(default = "Config::default_race_stat_hud_width_scale")]
+    pub race_stat_hud_width_scale: f32,
+    #[serde(default = "Config::default_race_stat_hud_height_scale")]
+    pub race_stat_hud_height_scale: f32,
+    #[serde(default)]
+    pub race_playback_slider: bool,
+    #[serde(default)]
+    pub race_playback_button: bool,
+    #[serde(default)]
+    pub race_playback_key_enable: bool,
     #[serde(flatten)]
     pub caption: CaptionConfig,
+    #[serde(default)]
+    pub disable_tap_effect: bool,
     #[serde(default)]
     pub language: Language,
     #[serde(default = "Config::default_meta_index_url")]
@@ -827,6 +856,10 @@ impl Config {
     pub fn default_text_color() -> egui::Color32 { egui::Color32::from_gray(170) }
     pub fn default_window_rounding() -> f32 { 10.0 }
     fn default_tl_auto_updater_interval_sec() -> u64 { 3600 }
+    fn default_race_stat_hud_drag_x() -> f32 { -1.0 }
+    fn default_race_stat_hud_drag_y() -> f32 { -1.0 }
+    fn default_race_stat_hud_width_scale() -> f32 { 1.0 }
+    fn default_race_stat_hud_height_scale() -> f32 { 1.0 }
 }
 
 impl Default for Config {
@@ -882,7 +915,10 @@ pub enum Language {
     Filipino,
 
     #[serde(rename = "ru")]
-    Russian
+    Russian,
+
+    #[serde(rename = "ko")]
+    Korean
 }
 
 impl Default for Language {
@@ -904,6 +940,8 @@ impl Default for Language {
             Self::Filipino
         } else if locale.starts_with("ru") {
             Self::Russian
+        } else if locale.starts_with("ko") {
+            Self::Korean
         } else {
             Self::English
         }
@@ -920,7 +958,8 @@ impl Language {
         Self::Spanish.choice(),
         Self::BPortuguese.choice(),
         Self::Filipino.choice(),
-        Self::Russian.choice()
+        Self::Russian.choice(),
+        Self::Korean.choice()
     ];
 
     pub fn set_locale(&self) {
@@ -937,7 +976,8 @@ impl Language {
             Language::Spanish => "es",
             Language::BPortuguese => "pt-br",
             Language::Filipino => "fil",
-            Language::Russian => "ru"
+            Language::Russian => "ru",
+            Language::Korean => "ko"
         }
     }
 
@@ -951,7 +991,8 @@ impl Language {
             Language::Spanish => "Español (ES)",
             Language::BPortuguese => "Português (Brasil)",
             Language::Filipino => "Filipino",
-            Language::Russian => "Русский"
+            Language::Russian => "Русский",
+            Language::Korean => "한국어"
         }
     }
 
