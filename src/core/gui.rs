@@ -564,7 +564,7 @@ impl RaceStatHud {
     }
 
     fn elements_showing_locked(hud: &RaceStatHud) -> bool {
-        if Hachimi::instance().game.region != Region::Japan {
+        if !matches!(Hachimi::instance().game.region, Region::Japan | Region::Global) {
             return false;
         }
 
@@ -1475,18 +1475,19 @@ impl RaceStatHud {
     }
 
     fn ordinal_into(n: i32, out: &mut String) {
-        let suffix = if n / 10 % 10 == 1 {
+        let suffix = if n.abs() / 10 % 10 == 1 {
             "th"
         } else {
-            match n % 10 {
+            match n.abs() % 10 {
                 1 => "st",
                 2 => "nd",
                 3 => "rd",
                 _ => "th"
             }
         };
+
         out.clear();
-        let _ = write!(out, "{}{}", n, suffix);
+        out.push_str(&t!("ordinal", n = n, suffix = suffix));
     }
 
     fn skills_page(&mut self, ui: &mut egui::Ui, skill_ids: &[i32], scale: f32) {
@@ -1613,11 +1614,25 @@ impl RaceStatHud {
     }
 
     fn collect_course_info() -> Option<RaceCourseInfo> {
-        use crate::il2cpp::hook::umamusume::RaceInfo;
+        use crate::il2cpp::hook::umamusume::{RaceInfo, RacePhaseCalculator};
 
         let race_info = RaceManager::get_RaceInfo();
         if race_info.is_null() {
             return None;
+        }
+
+        if Hachimi::instance().game.region == Region::Global {
+            let phase_calc = RaceInfo::get_PhaseCalc(race_info);
+            if phase_calc.is_null() {
+                return None;
+            }
+
+            return Some(RaceCourseInfo {
+                course_distance: RaceInfo::get_CourseDistance(race_info) as f32,
+                phase_middle: RacePhaseCalculator::get_PhaseMiddleStartDistance(phase_calc),
+                phase_end: RacePhaseCalculator::get_PhaseEndStartDistance(phase_calc),
+                phase_last: RacePhaseCalculator::get_PhaseLastStartDistance(phase_calc)
+            });
         }
 
         Some(RaceCourseInfo {
@@ -1725,6 +1740,10 @@ impl RaceStatHud {
             events.resize_with(horse_count, Vec::new);
         } else {
             events.truncate(horse_count);
+        }
+
+        if Hachimi::instance().game.region != Region::Japan {
+            return;
         }
 
         if !RaceHorseManagerReplay::is_replay_manager(horse_manager) {
@@ -1847,7 +1866,9 @@ impl RaceStatHud {
 
         stats.speed = HorseRaceInfo::get__lastSpeed(race_info);
         stats.min_speed = HorseRaceInfo::get__minSpeed(race_info);
-        stats.max_speed_in_race = HorseRaceInfo::get__maxSpeedInRace(race_info);
+        if Hachimi::instance().game.region != Region::Global {
+            stats.max_speed_in_race = HorseRaceInfo::get__maxSpeedInRace(race_info);
+        }
         stats.hp = HorseRaceInfo::get__hp(race_info);
         stats.max_hp = HorseRaceInfo::get__maxHp(race_info);
 
@@ -2664,10 +2685,24 @@ impl Gui {
     }
 
     fn race_slider_showing() -> bool {
-        Hachimi::instance().config.load().race_playback_slider
-        && RaceHorseManagerBase::is_race_active()
-        && (!HorseRaceInfo::is_start_dash() || RACE_SLIDER_DRAGGING.load(atomic::Ordering::Acquire))
-        && !HorseRaceInfo::is_finished()
+        let config = Hachimi::instance().config.load();
+        let is_dragging = RACE_SLIDER_DRAGGING.load(atomic::Ordering::Acquire);
+
+        if !config.race_playback_slider
+            || !RaceHorseManagerBase::is_race_active()
+            || (HorseRaceInfo::is_start_dash() && !is_dragging)
+            || HorseRaceInfo::is_finished() {
+            return false;
+        }
+
+        if !config.race_playback_slider_always && !is_dragging {
+            let race_manager = RaceManager::instance();
+            if race_manager.is_null() || !RaceManagerReplayBase::IsPaused(race_manager) {
+                return false;
+            }
+        }
+
+        true
     }
 
     fn run_race_slider(&mut self, ctx: &egui::Context) {
@@ -5012,6 +5047,12 @@ impl ConfigEditor {
                 ui.end_row();
             }
 
+            if should_show_option(search, &t!("config_editor.skill_data_desc")) {
+                ui.label(t!("config_editor.skill_data_desc"));
+                ui.checkbox(&mut config.skill_data_desc, "");
+                ui.end_row();
+            }
+
             if should_show_option(search, &t!("config_editor.hide_ingame_ui_hotkey")) {
                 ui.label(t!("config_editor.hide_ingame_ui_hotkey"));
                 if ui.checkbox(&mut config.hide_ingame_ui_hotkey, "").clicked() {
@@ -5062,20 +5103,20 @@ impl ConfigEditor {
                 ui.end_row();
             }
 
-            if should_show_option(search, &t!("config_editor.race_stat_hud")) && Hachimi::instance().game.region == Region::Japan {
+            if should_show_option(search, &t!("config_editor.race_stat_hud")) && matches!(Hachimi::instance().game.region, Region::Japan | Region::Global) {
                 ui.label(t!("config_editor.race_stat_hud"));
                 ui.checkbox(&mut config.race_stat_hud, "");
                 ui.end_row();
             }
 
-            if should_show_option(search, &t!("config_editor.race_stat_hud_toggle_button")) && Hachimi::instance().game.region == Region::Japan
+            if should_show_option(search, &t!("config_editor.race_stat_hud_toggle_button")) && matches!(Hachimi::instance().game.region, Region::Japan | Region::Global)
                 && config.race_stat_hud {
                 ui.label(t!("config_editor.race_stat_hud_toggle_button"));
                 ui.checkbox(&mut config.race_stat_hud_toggle_button, "");
                 ui.end_row();
             }
 
-            if should_show_option(search, &t!("config_editor.race_stat_hud_toggle_key")) && Hachimi::instance().game.region == Region::Japan
+            if should_show_option(search, &t!("config_editor.race_stat_hud_toggle_key")) && matches!(Hachimi::instance().game.region, Region::Japan | Region::Global)
                 && config.race_stat_hud {
                 ui.label(t!("config_editor.race_stat_hud_toggle_key"));
                 ui.horizontal(|ui| {
@@ -5115,7 +5156,7 @@ impl ConfigEditor {
                 ui.end_row();
             }
 
-            if should_show_option(search, &t!("config_editor.race_stat_hud_draggable")) && Hachimi::instance().game.region == Region::Japan
+            if should_show_option(search, &t!("config_editor.race_stat_hud_draggable")) && matches!(Hachimi::instance().game.region, Region::Japan | Region::Global)
                 && config.race_stat_hud {
                 ui.label(t!("config_editor.race_stat_hud_draggable"));
                 ui.horizontal(|ui| {
@@ -5135,14 +5176,14 @@ impl ConfigEditor {
                 ui.end_row();
             }
 
-            if should_show_option(search, &t!("config_editor.race_stat_hud_draggable_save")) && Hachimi::instance().game.region == Region::Japan
+            if should_show_option(search, &t!("config_editor.race_stat_hud_draggable_save")) && matches!(Hachimi::instance().game.region, Region::Japan | Region::Global)
                 && config.race_stat_hud && config.race_stat_hud_draggable {
                 ui.label(t!("config_editor.race_stat_hud_draggable_save"));
                 ui.checkbox(&mut config.race_stat_hud_draggable_save, "");
                 ui.end_row();
             }
 
-            if should_show_option(search, &t!("config_editor.race_stat_hud_width_scale")) && Hachimi::instance().game.region == Region::Japan
+            if should_show_option(search, &t!("config_editor.race_stat_hud_width_scale")) && matches!(Hachimi::instance().game.region, Region::Japan | Region::Global)
                 && config.race_stat_hud {
                 ui.label(t!("config_editor.race_stat_hud_width_scale"));
                 ui.add(egui::Slider::new(&mut config.race_stat_hud_width_scale,
@@ -5151,7 +5192,7 @@ impl ConfigEditor {
                 ui.end_row();
             }
 
-            if should_show_option(search, &t!("config_editor.race_stat_hud_height_scale")) && Hachimi::instance().game.region == Region::Japan
+            if should_show_option(search, &t!("config_editor.race_stat_hud_height_scale")) && matches!(Hachimi::instance().game.region, Region::Japan | Region::Global)
                 && config.race_stat_hud {
                 ui.label(t!("config_editor.race_stat_hud_height_scale"));
                 ui.add(egui::Slider::new(&mut config.race_stat_hud_height_scale,
@@ -5163,6 +5204,12 @@ impl ConfigEditor {
             if should_show_option(search, &t!("config_editor.race_playback_slider")) {
                 ui.label(t!("config_editor.race_playback_slider"));
                 ui.checkbox(&mut config.race_playback_slider, "");
+                ui.end_row();
+            }
+
+            if should_show_option(search, &t!("config_editor.race_playback_slider_always")) {
+                ui.label(t!("config_editor.race_playback_slider_always"));
+                ui.checkbox(&mut config.race_playback_slider_always, "");
                 ui.end_row();
             }
 

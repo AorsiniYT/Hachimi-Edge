@@ -5,7 +5,7 @@ use once_cell::sync::OnceCell;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use textwrap::wrap_algorithms::Penalties;
 
-use crate::{core::{gui, plugin_api::Plugin, updater}, gui_impl, hachimi_impl, il2cpp::{self, hook::umamusume::{CySpringController::SpringUpdateMode, GameSystem}, sql::{CharacterData, SkillInfo}}};
+use crate::{core::{gui, plugin_api::Plugin, updater}, gui_impl, hachimi_impl, il2cpp::{self, hook::umamusume::{CySpringController::SpringUpdateMode, GameSystem}, sql::{CharacterData, SkillDataDesc, SkillInfo}}};
 
 use super::{game::{Game, Region}, ipc, plurals, template, template_filters, tl_repo, utils, Error, Interceptor};
 
@@ -67,6 +67,7 @@ pub struct Hachimi {
     pub chara_data: ArcSwap<CharacterData>,
     // Untranslated skill info
     pub skill_info: ArcSwap<SkillInfo>,
+    pub skill_data_desc: ArcSwap<SkillDataDesc>,
 
     // Shared properties
     pub game: Game,
@@ -165,6 +166,7 @@ impl Hachimi {
             // Same with these
             chara_data: ArcSwap::default(),
             skill_info: ArcSwap::default(),
+            skill_data_desc: ArcSwap::default(),
 
             game,
             template_parser: template::Parser::new(&template_filters::LIST),
@@ -295,6 +297,14 @@ impl Hachimi {
             let data = SkillInfo::load_from_db();
             self.skill_info.store(Arc::new(data));
             info!("Skill info loaded successfully.");
+        }
+    }
+
+    pub fn init_skill_data_desc(&self) {
+        if self.skill_data_desc.load().descs.is_empty() {
+            let data = SkillDataDesc::load_from_db();
+            self.skill_data_desc.store(Arc::new(data));
+            info!("Skill data descriptions loaded successfully.");
         }
     }
 
@@ -743,6 +753,8 @@ pub struct Config {
     #[serde(default)]
     pub skill_info_dialog: bool,
     #[serde(default)]
+    pub skill_data_desc: bool,
+    #[serde(default)]
     pub homescreen_bgseason: crate::il2cpp::hook::umamusume::GameDefine::BgSeason,
     pub sugoi_url: Option<String>,
     #[serde(default)]
@@ -775,6 +787,8 @@ pub struct Config {
     pub race_stat_hud_height_scale: f32,
     #[serde(default)]
     pub race_playback_slider: bool,
+    #[serde(default = "Config::default_true")]
+    pub race_playback_slider_always: bool,
     #[serde(default)]
     pub race_playback_button: bool,
     #[serde(default)]
@@ -860,6 +874,7 @@ impl Config {
     fn default_race_stat_hud_drag_y() -> f32 { -1.0 }
     fn default_race_stat_hud_width_scale() -> f32 { 1.0 }
     fn default_race_stat_hud_height_scale() -> f32 { 1.0 }
+    fn default_true() -> bool { true }
 }
 
 impl Default for Config {
