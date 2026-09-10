@@ -45,6 +45,7 @@ summer: "Verano"
 fall: "Otoño"
 winter: "Invierno"
 cherry_blossom: "Sakura"
+ordinal: "%{n}%{suffix}"
 
 menu:
   check_for_updates: "\uf0aa Buscar actualizaciones"
@@ -221,6 +222,7 @@ config_editor:
   physics_update_mode: "Modo de actualización de físicas"
   cyspring_mono_uncap_frame_scale: "Desbloquear escala de frames del CySpring Mono"
   disable_skill_name_translation: "No traducir habilidades"
+  skill_data_desc: "Descripciones de datos de habilidades"
   hide_ingame_ui_hotkey: "Atajo para ocultar UI del juego"
   hide_ingame_ui_hotkey_info: >-
     Esta opción te permite asignar una tecla para alternar la UI del juego.
@@ -236,6 +238,7 @@ config_editor:
   race_stat_hud_width_scale: "Escala de anchura de la interfaz de estadísticas de carrera"
   race_stat_hud_height_scale: "Escala de altura de la interfaz de estadísticas de carrera"
   race_playback_slider: "Barra de reproducción de la repetición de carreras"
+  race_playback_slider_always: "Mostrar siempre la barra de reproducción de la repetición de carreras"
   race_playback_button: "Botón de pausa/reanudación de la repetición de carreras"
   race_playback_key_enable: "Activar tecla para pausar/reanudar la repetición de carreras"
   race_playback_key: "Tecla para pausar/reanudar la repetición de carreras"
@@ -577,3 +580,569 @@ key_names:
   numpad_divide: "Num /"
   numpad_decimal: "Num ."
   unknown: "Tecla %{code}"
+
+skill_data_desc:
+  group:
+    duration: "durante %{v} s"
+    immediate: "inmediatamente"
+    long_negative: "durante 500 s"
+    indefinite: "indefinidamente"
+    cd: " (CD %{v}s)"
+    when: " cuando: "
+    after: " <color=#29b39e>después</color>: "
+  sep:
+    or: " O "
+    and: " Y "
+    star: " * "
+    to: " a "
+  effect:
+    name:
+      speed_stat: "Velocidad"
+      stamina_stat: "Resistencia"
+      power_stat: "Poder"
+      guts_stat: "Agallas"
+      wit_stat: "Ingenio"
+      field_of_view: "Campo de visión"
+      current_hp: "PV actuales"
+      rushed_time: "Tiempo precipitado"
+      delay_start: "Retraso de salida"
+      current_speed: "Velocidad actual"
+      current_speed_natural_decel: "Velocidad actual (decel. natural)"
+      target_speed: "Velocidad objetivo"
+      lane_movement_speed: "Velocidad de cambio de carril"
+      rushed_chance: "Probabilidad de precipitación"
+      acceleration: "Aceleración"
+      all_stats: "Todos los atributos"
+      target_lane: "Carril objetivo"
+      activate_rare_skill: "Activar habilidad dorada"
+      special: "Especial"
+      event_specific: "Específica del evento"
+    unit:
+      stat: ""
+      deg: " °"
+      percent: "%"
+      second: " s"
+      mps: " m/s"
+      mps2: " m/s²"
+    fixed:
+      aggressive_strategy: "Cambia a una estrategia de corredor muy agresiva"
+      debuff_immunity: "Inmunidad a penalizaciones"
+      sympathy_all: "Activa Empatía en todos"
+      loh_stat: "Aumento de atributos {0}%, probabilidad de motivación máxima {1}%"
+    start_reaction:
+      "4000": "Tiempo de reacción a la salida -60%"
+      "9000": "Tiempo de reacción a la salida -10%"
+      "15000": "Tiempo de reacción a la salida +50%"
+    usage19_suffix: " +0.1 si está a ≥20 m del líder"
+  star:
+    activate:
+      "1": "Adelanta durante"
+      "2": "Habilidades durante (máx. 3)"
+      "3": "Habilidades durante (máx. 2)"
+    usage:
+      "2": "# Habilidades"
+      "3": "Velocidad del equipo"
+      "4": "Resistencia del equipo"
+      "5": "Poder del equipo"
+      "6": "Agallas del equipo"
+      "7": "Ingenio del equipo"
+      "8": "Aleatorio"
+      "10": "Carreras ganadas"
+      "11": "Adelantamientos en curvas del tramo final"
+      "12": "Número de fans"
+      "13": "Atributo máximo"
+      "14": "# Habilidades verdes"
+      "20": "Tiempo máximo bloqueada (lado, tramo medio)"
+      "22": "Velocidad final (alta)"
+      "23": "Velocidad final"
+      "24": "Nivel total de aptitud en el extranjero"
+      "25": "Distancia máxima de ventaja"
+      "26": "Victorias H.A.F"
+      "27": "Puntos de cocina"
+      "28": "Nivel total de investigación"
+      "30": "Amor de los fans"
+      "31": "Puntos de desarrollo"
+      "32": "Rango de aguas termales"
+      "34": "Distancia a la líder (sin detalles)"
+      "35": "Tipo de distancia de carrera"
+      "36": "Tipo de distancia de carrera"
+      "37": "Rango del equipo DREAMS"
+      "40": "Puntos de emoción totales"
+  target:
+    all_in_fov: "Todas en el campo de visión"
+    leading: "%{v} en cabeza"
+    all_ahead: "Todas delante"
+    closest_ahead: "%{v} más cercanas delante"
+    all_behind: "Todas detrás"
+    closest_behind: "%{v} más cercanas detrás"
+    team: "equipo"
+    style:
+      "1": "Corredores"
+      "2": "Líderes"
+      "3": "Acechadores"
+      "4": "Perseguidores"
+    random_rushed_ahead: "%{v} precipitadas al azar delante"
+    random_rushed_behind: "%{v} precipitadas al azar detrás"
+    style_rushed:
+      "1": "Corredores (precipitadas)"
+      "2": "Líderes (precipitadas)"
+      "3": "Acechadores (precipitadas)"
+      "4": "Perseguidores (precipitadas)"
+    suzuka: "Silence Suzuka"
+    random_recovery_users: "%{v} usuarias de recuperación al azar"
+    unknown: "Desconocido"
+  cond:
+    negate: "No %{v}"
+    order_rate:
+      gt: "Entre los últimos ﹤%{v}%"
+      ge: "Entre los últimos %{v}%"
+      le: "Entre los primeros %{v}%"
+      lt: "Entre los primeros ﹤%{v}%"
+    corner:
+      straight: "En recta"
+      corner: "En la curva %{v}"
+      any: "En una curva"
+      not: "No en la curva %{v}"
+    phase:
+      name:
+        "0": "Tramo inicial"
+        "1": "Tramo medio"
+        "2": "Tramo final"
+        "3": "Esprint final (fase)"
+      le: "%{v} o antes"
+      ge: "%{v} o después"
+    ground_condition:
+      name:
+        "1": "Buena"
+        "2": "Ligeramente pesada"
+        "3": "Pesada"
+        "4": "Muy pesada"
+      eq: "Estado de la pista %{v}"
+      ne: "Estado de la pista no %{v}"
+      le: "Estado de la pista %{v} o mejor"
+      ge: "Estado de la pista %{v} o peor"
+    track_id:
+      jra: "En un hipódromo de la JRA"
+      any: "En cualquier hipódromo"
+      at: "En %{v}"
+      not_at: "No en %{v}"
+    track_name:
+      "10001": "Hipódromo de Sapporo"
+      "10002": "Hipódromo de Hakodate"
+      "10003": "Hipódromo de Niigata"
+      "10004": "Hipódromo de Fukushima"
+      "10005": "Hipódromo de Nakayama"
+      "10006": "Hipódromo de Tokio"
+      "10007": "Hipódromo de Chukyo"
+      "10008": "Hipódromo de Kioto"
+      "10009": "Hipódromo de Hanshin"
+      "10010": "Hipódromo de Kokura"
+      "10101": "Hipódromo de Oi"
+      "10103": "Hipódromo de Kawasaki"
+      "10104": "Hipódromo de Funabashi"
+      "10105": "Hipódromo de Morioka"
+      "10201": "Hipódromo de Longchamp"
+      "10202": "Parque Santa Anita"
+      "10203": "Hipódromo de Del Mar"
+    same_skill_horse_count:
+      unique: "Solo tú tienes esta habilidad"
+      count: "%{v} corredoras tienen esta habilidad"
+    near_infront_count:
+      none: "Nadie justo delante"
+      count: "%{v} oponentes justo delante"
+    furlong: "Furlong %{v}"
+    used_skill:
+      "203781": "Usó la habilidad Impulso"
+      "203061": "Usó la habilidad Sin pensarlo dos veces"
+      "203071": "Usó la habilidad Sin tercera oportunidad"
+      "202051": "Usó la habilidad Fuga"
+      "120221": "Usó la habilidad Dash elegante: El camino del ramen"
+      template: "Usó la habilidad %{v}"
+    used_skill_detail_one:
+      "204452": "Usó la habilidad Prueba de la Santa (efecto 1)"
+      template: "Usó la habilidad %{v} (efecto 1)"
+    popularity_top:
+      any: "La uma más popular activó una habilidad"
+      count: "La uma más popular activó la habilidad %{v}"
+    enum:
+      distance_type:
+        eq:
+          "1": "Esprint"
+          "2": "Milla"
+          "3": "Media"
+          "4": "Larga"
+      ground_type:
+        eq:
+          "1": "Césped"
+          "2": "Tierra"
+      is_abroad:
+        eq:
+          "0": "No en el extranjero"
+          "1": "En el extranjero"
+      is_activate_other_skill_detail:
+        eq:
+          "1": "Activó el disparador 1"
+          "2": "Activó el disparador 2"
+      is_badstart:
+        eq:
+          "0": "Salida no mala"
+          "1": "Salida tardía"
+      is_basis_distance:
+        eq:
+          "0": "Distancia no principal"
+          "1": "Distancia principal"
+      is_finalcorner:
+        eq:
+          "0": "No en la curva/recta final"
+          "1": "En la curva/recta final"
+      is_goodstart:
+        eq:
+          "0": "No fue una buena salida"
+          "1": "Buena salida"
+      is_move_lane:
+        eq:
+          "1": "Se acercó a la valla"
+          "2": "Se alejó de la valla"
+      is_other_character_activate_advantage_skill:
+        eq:
+          "9": "Una oponente usó habilidad de +PV actuales"
+          "22": "Una oponente usó habilidad de +Velocidad actual (decel. natural)"
+          "27": "Una oponente usó habilidad de +Velocidad objetivo"
+          "31": "Una oponente usó habilidad de +Aceleración"
+      is_temptation:
+        eq:
+          "0": "No precipitada"
+          "1": "Precipitada"
+      motivation:
+        eq:
+          "4": "Motivación Alta"
+          "5": "Motivación Máxima"
+        ge:
+          "4": "Motivación ≥Alta"
+          "5": "Motivación ≥Máxima"
+        le:
+          "4": "Motivación ≤Alta"
+          "5": "Motivación ≤Máxima"
+      phase_corner_random:
+        eq:
+          "1": "Curva del tramo medio (aleatoria)"
+          "2": "Curva del tramo final (aleatoria)"
+      phase_first_half_straight_random:
+        eq:
+          "1": "Primera mitad de la recta del tramo medio (aleatoria)"
+          "2": "Primera mitad de la recta del tramo final (aleatoria)"
+      phase_firsthalf:
+        eq:
+          "1": "Primera mitad del tramo medio"
+          "3": "Primera mitad del esprint final (fase)"
+      phase_firsthalf_random:
+        eq:
+          "0": "Primera mitad del tramo inicial (aleatoria)"
+          "1": "Primera mitad del tramo medio (aleatoria)"
+          "2": "Primera mitad del tramo final (aleatoria)"
+          "3": "Primera mitad del esprint final (fase) (aleatoria)"
+      phase_laterhalf:
+        eq:
+          "0": "Segunda mitad del tramo inicial"
+          "1": "Segunda mitad del tramo medio"
+          "2": "Segunda mitad del tramo final"
+      phase_laterhalf_random:
+        eq:
+          "0": "Segunda mitad del tramo inicial (aleatoria)"
+          "1": "Segunda mitad del tramo medio (aleatoria)"
+          "2": "Segunda mitad del tramo final (aleatoria)"
+      phase_latter_half_straight_random:
+        eq:
+          "1": "Segunda mitad de la recta del tramo medio (aleatoria)"
+          "2": "Segunda mitad de la recta del tramo final (aleatoria)"
+      phase_random:
+        eq:
+          "0": "Tramo inicial (aleatorio)"
+          "1": "Tramo medio (aleatorio)"
+          "2": "Tramo final (aleatorio)"
+          "3": "Esprint final (fase) (aleatorio)"
+      phase_straight_random:
+        eq:
+          "1": "Recta del tramo medio (aleatoria)"
+          "2": "Recta del tramo final (aleatoria)"
+      rotation:
+        eq:
+          "1": "Pista a la derecha (CW)"
+          "2": "Pista a la izquierda (CCW)"
+      running_style:
+        eq:
+          "1": "Corredor"
+          "2": "Líder"
+          "3": "Acechador"
+          "4": "Perseguidor"
+      season:
+        eq:
+          "1": "Primavera"
+          "2": "Verano"
+          "3": "Otoño"
+          "4": "Invierno"
+          "5": "Temporada de cerezos (del 20 de marzo al 20 de abril)"
+      slope:
+        eq:
+          "0": "Llano"
+          "1": "Subida"
+          "2": "Bajada"
+      weather:
+        eq:
+          "1": "Soleado"
+          "2": "Nublado"
+          "3": "Lluvia"
+          "4": "Nieve"
+    fixed:
+      all_corner_random:
+        eq: "Cualquier curva"
+      always:
+        eq: "Siempre"
+      blocked_front:
+        eq: "Bloqueada (delante)"
+      change_order_onetime:
+        gt: "Fue adelantada"
+        lt: "Adelantó"
+      down_slope_random:
+        eq: "En bajada"
+      grade:
+        eq: "Carrera G1"
+      is_activate_any_skill:
+        eq: "Usó cualquier habilidad"
+      is_activate_heal_skill:
+        eq: "Recupera energía"
+      is_behind_in:
+        eq: "Oponente detrás más cerca de la valla"
+      is_dirtgrade:
+        eq: "Carrera de intercambio"
+        ne: "No es una carrera de intercambio"
+      is_exist_chara_id:
+        eq: "Silence Suzuka presente"
+      is_exist_skill_id:
+        eq: "Habilidad Empatía presente"
+      is_finalcorner_laterhalf:
+        eq: "Curva/recta final (segunda mitad)"
+      is_finalcorner_random:
+        eq: "Curva final (aleatoria)"
+      is_hp_empty_onetime:
+        eq: "Se quedó sin energía"
+      is_last_straight:
+        eq: "En la recta final"
+      is_last_straight_onetime:
+        eq: "Llegó a la recta final"
+      is_lastspurt:
+        eq: "Esprint final (modo)"
+      is_overtake:
+        eq: "Adelantando"
+      is_surrounded:
+        eq: "Encerrada"
+      is_tight_track:
+        eq: "Pista estrecha"
+      lane_type:
+        eq: "Carril interior"
+      last_straight_random:
+        eq: "Recta final (aleatoria)"
+      lastspurt:
+        eq: "Buen aguante en el esprint final"
+      order_rate_in20_continue:
+        eq: "Permaneció entre los primeros 20%"
+      order_rate_in40_continue:
+        eq: "Permaneció entre los primeros 40%"
+      order_rate_in50_continue:
+        eq: "Permaneció entre los primeros 50%"
+      order_rate_in80_continue:
+        eq: "Permaneció entre los primeros 80%"
+      order_rate_out20_continue:
+        eq: "Permaneció entre los últimos 80%"
+      order_rate_out40_continue:
+        eq: "Permaneció entre los últimos 60%"
+      order_rate_out50_continue:
+        eq: "Permaneció entre los últimos 50%"
+      order_rate_out70_continue:
+        eq: "Permaneció entre los últimos 30%"
+      phase_firstquarter:
+        eq: "Primer cuarto del tramo final"
+      phase_firstquarter_random:
+        eq: "Primer cuarto del tramo final (aleatorio)"
+      phase_laterhalf:
+        le: "Segunda mitad del tramo medio o antes"
+      run_at_full_speed_random:
+        eq: "Esprint a fondo (aleatorio)"
+      running_style_equal_popularity_one:
+        eq: "Misma estrategia que la favorita"
+      straight_front_type:
+        eq: "En la recta trasera"
+      straight_random:
+        eq: "En una recta (aleatoria)"
+      time:
+        eq: "De noche"
+      up_slope_random:
+        eq: "En subida"
+      up_slope_random_later_half:
+        eq: "En subida (segunda mitad)"
+    template:
+      accumulatetime:
+        ge: "Han pasado %{v} s"
+      activate_count_all:
+        ge: "Usa ≥%{v} habilidades"
+        le: "Usa ≤%{v} habilidades"
+      activate_count_all_team:
+        ge: "El equipo usó ≥%{v} habilidades"
+      activate_count_end_after:
+        ge: "Usa ≥%{v} habilidades (desde el tramo final)"
+      activate_count_heal:
+        ge: "Recupera energía %{v}+ veces"
+      activate_count_later_half:
+        ge: "Usa ≥%{v} habilidades (segunda mitad)"
+      activate_count_middle:
+        eq: "Usa %{v} habilidades (tramo medio)"
+        ge: "Usa ≥%{v} habilidades (tramo medio)"
+      activate_count_start:
+        ge: "Usa ≥%{v} habilidades (tramo inicial)"
+      base_guts:
+        ge: "Agallas base ≥%{v}"
+        lt: "Agallas base ﹤%{v}"
+      base_power:
+        ge: "Poder base ≥%{v}"
+        lt: "Poder base ﹤%{v}"
+      base_speed:
+        ge: "Velocidad base ≥%{v}"
+      base_stamina:
+        ge: "Resistencia base ≥%{v}"
+        lt: "Resistencia base ﹤%{v}"
+      base_wiz:
+        ge: "Ingenio base ≥%{v}"
+        lt: "Ingenio base ﹤%{v}"
+      bashin_diff_behind:
+        ge: "≥%{v} cuerpos por delante"
+        le: "≤%{v} cuerpos por delante"
+      bashin_diff_infront:
+        le: "≤%{v} cuerpos por detrás"
+      behind_near_lane_time:
+        ge: "Oponente cerca detrás durante %{v} s"
+      behind_near_lane_time_set1:
+        ge: "Oponente detrás durante %{v} s"
+      blocked_all_continuetime:
+        ge: "Bloqueada (delante y lados) durante ≥%{v} s"
+      blocked_front_continuetime:
+        ge: "Bloqueada (delante) durante ≥%{v} s"
+      blocked_side_continuetime:
+        ge: "Bloqueada (lados) durante ≥%{v} s"
+      change_order_up_end_after:
+        ge: "%{v} adelantamientos en el tramo final"
+      change_order_up_finalcorner_after:
+        ge: "%{v} adelantamientos después de la curva final"
+      change_order_up_middle:
+        ge: "%{v} adelantamientos en el tramo medio"
+      compete_fight_count:
+        gt: "﹥%{v} duelos"
+      corner_count:
+        eq: "%{v} curvas"
+      corner_random:
+        eq: "Curva %{v} (aleatoria)"
+      course_distance:
+        eq: "Distancia de carrera %{v} m"
+        ge: "Distancia de carrera ≥%{v} m"
+        gt: "Distancia de carrera ﹥%{v} m"
+        le: "Distancia de carrera ≤%{v} m"
+        lt: "Distancia de carrera ﹤%{v} m"
+        ne: "Distancia de carrera ≠%{v} m"
+      distance_diff_rate:
+        ge: "≥%{v}% respecto a la líder"
+        le: "≤%{v}% respecto a la líder"
+      distance_diff_top:
+        ge: "Distancia a la primera ≥%{v} m"
+        gt: "Distancia a la primera ﹥%{v} m"
+        le: "Distancia a la primera ≤%{v} m"
+      distance_rate:
+        ge: "Tras el %{v}% de la distancia"
+        le: "Antes del %{v}% de la distancia"
+      distance_rate_after_random:
+        eq: "Tras el %{v}% de la distancia (aleatorio)"
+      fan_count:
+        ge: "Número de fans ≥%{v}"
+      hp_per:
+        ge: "Energía ≥%{v}%"
+        le: "Energía ≤%{v}%"
+      infront_near_lane_time:
+        ge: "Oponente cerca delante durante %{v} s"
+      near_count:
+        eq: "Exactamente %{v} oponentes cerca"
+        ge: "%{v}+ oponentes cerca"
+      near_infront_count:
+        ge: "%{v}+ oponentes cerca delante"
+      order:
+        eq: "Posición %{v}"
+        ge: "Posición ≥%{v}"
+        le: "Posición ≤%{v}"
+      overtake_target_no_order_up_time:
+        ge: "Tiene objetivo de adelantamiento durante ≥%{v} s"
+      overtake_target_time:
+        ge: "Es objetivo de adelantamiento durante ≥%{v} s"
+      popularity:
+        eq: "Popularidad %{v}"
+        ge: "Popularidad ≥%{v}"
+        le: "Popularidad ≤%{v}"
+        lt: "Popularidad ﹤%{v}"
+      post_number:
+        eq: "Puesto %{v}"
+        ge: "Puesto ≥%{v}"
+        le: "Puesto ≤%{v}"
+      random_lot:
+        eq: "Probabilidad aleatoria %{v}%"
+      remain_distance:
+        eq: "Distancia restante %{v} m"
+        ge: "Distancia restante ≥%{v} m"
+        le: "Distancia restante ≤%{v} m"
+      remain_distance_viewer_id:
+        ge: "≥%{v} m restantes (personaje del jugador)"
+        le: "≤%{v} m restantes (personaje del jugador)"
+      running_style_count_nige_otherself:
+        ge: "%{v}+ otros corredores"
+      running_style_count_oikomi_otherself:
+        ge: "%{v}+ otros perseguidores"
+      running_style_count_same:
+        le: "≤%{v} con la misma estrategia"
+      running_style_count_same_rate:
+        ge: "≥%{v}% con la misma estrategia"
+      running_style_count_sashi_otherself:
+        ge: "%{v}+ otros acechadores"
+      running_style_count_senko_otherself:
+        ge: "%{v}+ otros líderes"
+      running_style_temptation_count_nige:
+        ge: "%{v}+ corredores precipitados (incluida la tuya)"
+      running_style_temptation_count_oikomi:
+        ge: "%{v}+ perseguidores precipitados (incluido el tuyo)"
+      running_style_temptation_count_sashi:
+        ge: "%{v}+ acechadores precipitados (incluido el tuyo)"
+      running_style_temptation_count_senko:
+        ge: "%{v}+ líderes precipitados (incluido el tuyo)"
+      running_style_temptation_opponent_count_nige:
+        ge: "≥%{v} corredores precipitados"
+      running_style_temptation_opponent_count_oikomi:
+        ge: "≥%{v} perseguidores precipitados"
+      running_style_temptation_opponent_count_sashi:
+        ge: "≥%{v} acechadores precipitados"
+      running_style_temptation_opponent_count_senko:
+        ge: "≥%{v} líderes precipitados"
+      same_skill_horse_count:
+        ge: "≥%{v} corredoras tienen esta habilidad"
+      succession_skill_count:
+        eq: "Tiene %{v} habilidades heredadas"
+        ge: "Tiene ≥%{v} habilidades heredadas"
+        le: "Tiene ≤%{v} habilidades heredadas"
+      temptation_count:
+        eq: "Precipitada %{v} veces"
+      temptation_count_behind:
+        ge: "≥%{v} precipitadas (detrás)"
+      temptation_count_infront:
+        ge: "≥%{v} precipitadas (delante)"
+      temptation_opponent_count_behind:
+        ge: "≥%{v} precipitadas (detrás)"
+      temptation_opponent_count_infront:
+        ge: "≥%{v} precipitadas (delante)"
+      visiblehorse:
+        ge: "≥%{v} oponentes en el campo de visión"
+        le: "Corredoras visibles ≤%{v}"
+      distance_diff_top_float:
+        le: "Distancia a la primera ≤%{v} m"
