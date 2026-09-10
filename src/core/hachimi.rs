@@ -858,7 +858,7 @@ impl Config {
     fn default_gui_scale() -> f32 { 1.0 }
     fn default_story_choice_auto_select_delay() -> f32 { 1.2 }
     fn default_story_tcps_multiplier() -> f32 { 3.0 }
-    fn default_meta_index_url() -> String { "https://gitlab.com/umatl/hachimi-meta/-/raw/main/meta.json".to_owned() }
+    fn default_meta_index_url() -> String { "https://raw.githubusercontent.com/AorsiniYT/hachimi-meta/refs/heads/main/meta.json".to_owned() }
     fn default_ui_animation_scale() -> f32 { 1.0 }
     fn default_live_vocals_swap() -> [i32; 6] { [0; 6] }
     fn default_champions_live_resource_id() -> i32 { 15 }
