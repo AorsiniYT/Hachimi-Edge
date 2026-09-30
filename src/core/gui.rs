@@ -5,9 +5,10 @@ use std::{
     ops::RangeInclusive,
     os::raw::c_void,
     panic::{self, AssertUnwindSafe},
+    path::Path,
     sync::{atomic::{self, AtomicBool, AtomicI32, AtomicU32, AtomicUsize}, Arc, Mutex},
     thread,
-    time::Instant
+    time::{Duration, Instant}
 };
 
 use egui::emath::GuiRounding as _;
@@ -41,10 +42,12 @@ use crate::il2cpp::{
             RaceDefine::{HorsePhase, LaneType},
             SimulateEventType,
             SkillManager,
+            StoryTimelineBg3DClipData::ShadowType3d,
             TemptationMode,
             SceneManager as UmaSceneManager
         },
-        UnityEngine_CoreModule::{Application, Texture::AnisoLevel}
+        UnityEngine_CoreModule::{Application, Texture::AnisoLevel},
+        Unity_RenderPipelines_Universal_Runtime::SoftShadowQuality
     },
     symbols::{IList, Thread, Array},
     types::{Il2CppObject, Il2CppString}
@@ -699,6 +702,11 @@ impl RaceStatHud {
         }
 
         if !RaceHorseManagerBase::is_race_active() {
+            return false;
+        }
+
+        if Hachimi::instance().game.region == Region::Global
+            && HorseRaceInfo::is_finished() {
             return false;
         }
 
@@ -3161,6 +3169,15 @@ impl Gui {
             return false;
         }
 
+        if !UmaSceneManager::is_race_scene_family() {
+            return false;
+        }
+        let race_manager = RaceManager::instance();
+        if race_manager.is_null()
+            || RaceManager::get__horseManager(race_manager).is_null() {
+            return false;
+        }
+
         let race_info = RaceManager::get_RaceInfo();
         if !race_info.is_null() && RaceInfo::get_IsStoryRace(race_info) {
             return false;
@@ -3293,6 +3310,15 @@ impl Gui {
     }
 
     fn race_playback_button_showing() -> bool {
+        if !UmaSceneManager::is_race_scene_family() {
+            return false;
+        }
+        let race_manager = RaceManager::instance();
+        if race_manager.is_null()
+            || RaceManager::get__horseManager(race_manager).is_null() {
+            return false;
+        }
+
         Hachimi::instance().config.load().race_playback_button && RaceHorseManagerBase::is_race_active()
         && !HorseRaceInfo::is_start_dash()
         && !HorseRaceInfo::is_finished()
@@ -3439,7 +3465,7 @@ impl Gui {
                             if let Some(id) = focused {
                                 *owner_lock = Some(KeyboardOwner::JNI(id));
                             }
-                            self.ime_cooldown = Some(Instant::now() + std::time::Duration::from_millis(500));
+                            self.ime_cooldown = Some(Instant::now() + Duration::from_millis(500));
                         }
                     }
                 } else if focused.is_none() && self.last_focused.is_some() {
@@ -4255,7 +4281,9 @@ impl Gui {
             !Self::race_slider_showing() &&
             !Self::race_playback_button_showing() &&
             !free_camera::has_overlay_message() &&
-            !RaceStatHud::elements_showing() && !RaceStatHud::is_active()
+            !RaceStatHud::elements_showing() && !RaceStatHud::is_active() &&
+            !IS_CONSUMING_INPUT.load(atomic::Ordering::Acquire) &&
+            !GUI_INPUT_ACTIVE.load(atomic::Ordering::Acquire)
         }
         #[cfg(target_os = "android")]
         {
@@ -4264,7 +4292,8 @@ impl Gui {
             !IS_LIVE_SCENE.load(atomic::Ordering::Acquire) &&
             !Self::race_slider_showing() &&
             !Self::race_playback_button_showing() &&
-            !RaceStatHud::elements_showing() && !RaceStatHud::is_active()
+            !RaceStatHud::elements_showing() && !RaceStatHud::is_active() &&
+            !IS_CONSUMING_INPUT.load(atomic::Ordering::Acquire)
         }
     }
 
@@ -4894,6 +4923,53 @@ pub struct GameOpts {
 
 pub static GAME_OPTS_CACHE: Lazy<Mutex<Option<GameOpts>>> = Lazy::new(|| Mutex::new(None));
 
+struct HachifontScan {
+    signature: Vec<(String, u64, u64)>,
+    fonts: Arc<Vec<String>>
+}
+
+static HACHIFONT_CACHE: Lazy<Mutex<Option<HachifontScan>>> = Lazy::new(|| Mutex::new(None));
+const HACHIFONT_STAT_INTERVAL: Duration = Duration::from_secs(3);
+const HACHIFONT_EXTENSION: &str = "hachifont";
+
+fn stat_hachifonts(dir: &Path) -> Vec<(String, u64, u64)> {
+    let mut signature = Vec::new();
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return signature;
+    };
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if !name.to_lowercase().ends_with(&format!(".{HACHIFONT_EXTENSION}")) {
+            continue;
+        }
+        let Ok(meta) = entry.metadata() else {
+            continue;
+        };
+        if !meta.is_file() {
+            continue;
+        }
+        let mtime = meta.modified().ok()
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_millis() as u64)
+            .unwrap_or(0);
+        signature.push((name, meta.len(), mtime));
+    }
+    signature.sort();
+    signature
+}
+
+fn scan_hachifonts(dir: &Path) -> HachifontScan {
+    let signature = stat_hachifonts(dir);
+    let mut fonts = Vec::with_capacity(signature.len());
+    for (name, _, _) in &signature {
+        match crate::il2cpp::utils::read_font_pack(&dir.join(name)) {
+            Ok(_) => fonts.push(name.clone()),
+            Err(reason) => warn!("Ignoring font pack {name}: {reason}")
+        }
+    }
+    HachifontScan { signature, fonts: Arc::new(fonts) }
+}
+
 struct ConfigEditor {
     last_ptr_config: usize,
     config: hachimi::Config,
@@ -4912,6 +4988,10 @@ struct ConfigEditor {
     font_color_options: Arc<Vec<String>>,
     outline_size_options: Arc<Vec<String>>,
     outline_color_options: Arc<Vec<String>>,
+    hachifont_items: Arc<Vec<String>>,
+    hachifont_signature: Vec<(String, u64, u64)>,
+    hachifont_result: Option<Arc<Mutex<Option<HachifontScan>>>>,
+    hachifont_last_stat: Instant,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy)]
@@ -5028,6 +5108,23 @@ impl ConfigEditor {
             outline_color_options = opts.outline_color_options;
         }
 
+        let (hachifont_items, hachifont_signature, hachifont_result) = {
+            let cache = HACHIFONT_CACHE.lock().unwrap();
+            if let Some(summary) = cache.as_ref() {
+                (summary.fonts.clone(), summary.signature.clone(), None)
+            } else {
+                drop(cache);
+                let result = Arc::new(Mutex::new(None));
+                let result_clone = result.clone();
+                let dir = Hachimi::instance().game.data_dir.clone();
+                thread::spawn(move || {
+                    let summary = scan_hachifonts(&dir);
+                    *result_clone.lock().unwrap() = Some(summary);
+                });
+                (Arc::new(Vec::new()), Vec::new(), Some(result))
+            }
+        };
+
         ConfigEditor {
             last_ptr_config: Arc::as_ptr(&handle) as usize,
             config: (**Hachimi::instance().config.load()).clone(),
@@ -5046,6 +5143,10 @@ impl ConfigEditor {
             font_color_options,
             outline_size_options,
             outline_color_options,
+            hachifont_items,
+            hachifont_signature,
+            hachifont_result,
+            hachifont_last_stat: Instant::now(),
         }
     }
 
@@ -5071,6 +5172,41 @@ impl ConfigEditor {
             ui.label("");
             ui.add(egui::Slider::new(num, range));
             ui.end_row();
+        }
+    }
+
+    fn spawn_hachifont_scan(&mut self) {
+        let result = Arc::new(Mutex::new(None));
+        self.hachifont_result = Some(result.clone());
+        let dir = Hachimi::instance().game.data_dir.clone();
+        thread::spawn(move || {
+            let summary = scan_hachifonts(&dir);
+            *result.lock().unwrap() = Some(summary);
+        });
+    }
+
+    fn poll_hachifonts(&mut self) {
+        if let Some(result) = self.hachifont_result.take() {
+            let drained = result.try_lock().ok().and_then(|mut lock| lock.take());
+            match drained {
+                Some(summary) => {
+                    self.hachifont_signature = summary.signature.clone();
+                    self.hachifont_items = summary.fonts.clone();
+                    *HACHIFONT_CACHE.lock().unwrap() = Some(summary);
+                }
+                None => {
+                    self.hachifont_result = Some(result);
+                }
+            }
+        }
+
+        if self.hachifont_result.is_none()
+            && self.hachifont_last_stat.elapsed() >= HACHIFONT_STAT_INTERVAL {
+            self.hachifont_last_stat = Instant::now();
+            let signature = stat_hachifonts(&Hachimi::instance().game.data_dir);
+            if signature != self.hachifont_signature {
+                self.spawn_hachifont_scan();
+            }
         }
     }
 
@@ -5144,6 +5280,57 @@ impl ConfigEditor {
                 if res.lost_focus() && config.meta_index_url.trim().is_empty() {
                     config.meta_index_url = hachimi::Config::default().meta_index_url;
                 }
+            }
+
+            if should_show_option(search, &t!("config_editor.custom_font_file")) {
+                ui.label(t!("config_editor.custom_font_file"));
+                if self.hachifont_items.is_empty() {
+                    ui.add_enabled_ui(false, |ui| {
+                        egui::ComboBox::new(ui.id().with("custom_font_file"), "")
+                            .selected_text(t!("config_editor.custom_font_none_found"))
+                            .wrap_mode(egui::TextWrapMode::Wrap)
+                            .show_ui(ui, |_| {});
+                    });
+                } else {
+                    let selected_text = {
+                        let selected = config.custom_font_file.get_or_insert_default();
+                        if selected.is_empty() {
+                            t!("default").into_owned()
+                        } else {
+                            selected.clone()
+                        }
+                    };
+                    egui::ComboBox::new(ui.id().with("custom_font_file"), "")
+                        .wrap_mode(egui::TextWrapMode::Wrap)
+                        .selected_text(selected_text.as_str())
+                        .show_ui(ui, |ui| {
+                            let selected = config.custom_font_file.get_or_insert_default();
+                            ui.selectable_value(selected, String::new(), t!("default"));
+                            for name in self.hachifont_items.iter() {
+                                ui.selectable_value(selected, name.clone(), name.clone());
+                            }
+                        });
+                    if config.custom_font_file.as_deref() == Some("") {
+                        config.custom_font_file = None;
+                    }
+                    if !config.custom_font_file_warning
+                        && config.custom_font_file.as_deref().is_some_and(|v| !v.is_empty())
+                        && config.custom_font_file.as_deref() != Some(selected_text.as_str())
+                    {
+                        config.custom_font_file_warning = true;
+                        thread::spawn(|| {
+                            Gui::instance().unwrap()
+                            .lock().unwrap()
+                            .show_window(Box::new(SimpleOkDialog::new(
+                                &t!("warning"),
+                                &t!("config_editor.custom_font_file_warning"),
+                                false,
+                                || {}
+                            )));
+                        });
+                    }
+                }
+                ui.end_row();
             }
 
             if should_show_option(search, &t!("config_editor.gui_scale")) {
@@ -5513,6 +5700,57 @@ impl ConfigEditor {
                     (ShadowResolution::_4096, "4K")
                 ]);
                 ui.end_row();
+            }
+
+            if Hachimi::instance().game.region == Region::Japan {
+                if should_show_option(search, &t!("config_editor.shadow_distance")) {
+                    ui.label(t!("config_editor.shadow_distance"));
+                    ui.add(egui::Slider::new(&mut config.shadow_distance, 0.0..=1000.0).step_by(10.0));
+                    ui.end_row();
+                }
+
+                if should_show_option(search, &t!("config_editor.soft_shadows")) {
+                    ui.label(t!("config_editor.soft_shadows"));
+                    ui.checkbox(&mut config.soft_shadows, "");
+                    ui.end_row();
+                }
+
+                if should_show_option(search, &t!("config_editor.soft_shadow_quality")) {
+                    ui.label(t!("config_editor.soft_shadow_quality"));
+                    Gui::run_combo(ui, "soft_shadow_quality", &mut config.soft_shadow_quality, &[
+                        (SoftShadowQuality::UsePipelineSettings, &t!("default")),
+                        (SoftShadowQuality::Low, &t!("low")),
+                        (SoftShadowQuality::Medium, &t!("medium")),
+                        (SoftShadowQuality::High, &t!("high"))
+                    ]);
+                    ui.end_row();
+                }
+
+                if should_show_option(search, &t!("config_editor.shadow_depth_bias")) {
+                    Self::option_slider(ui, &t!("config_editor.shadow_depth_bias"), &mut config.shadow_depth_bias, 0.0..=5.0);
+                }
+
+                if should_show_option(search, &t!("config_editor.shadow_normal_bias")) {
+                    Self::option_slider(ui, &t!("config_editor.shadow_normal_bias"), &mut config.shadow_normal_bias, 0.0..=10.0);
+                }
+
+                if should_show_option(search, &t!("config_editor.force_chara_shadows")) {
+                    ui.label(t!("config_editor.force_chara_shadows"));
+                    ui.checkbox(&mut config.force_chara_shadows, "");
+                    ui.end_row();
+                }
+
+                if should_show_option(search, &t!("config_editor.story_shadow_type")) {
+                    ui.label(t!("config_editor.story_shadow_type"));
+                    Gui::run_combo(ui, "story_shadow_type", &mut config.story_shadow_type, &[
+                        (ShadowType3d::Default, &t!("default")),
+                        (ShadowType3d::None, "None"),
+                        (ShadowType3d::CircleShadow, &t!("circle")),
+                        (ShadowType3d::HardShadow, &t!("hard")),
+                        (ShadowType3d::SoftShadow, &t!("soft"))
+                    ]);
+                    ui.end_row();
+                }
             }
 
             if should_show_option(search, &t!("config_editor.graphics_quality")) {
@@ -6543,6 +6781,7 @@ impl Window for ConfigEditor {
         {
             config.windows.menu_open_key = global_handle.windows.menu_open_key;
         }
+        self.poll_hachifonts();
         let mut reset_clicked = false;
         let mut save_clicked = false;
 
@@ -6773,6 +7012,13 @@ impl Window for ConfigEditor {
 
         open &= open2;
         if !open {
+            if self.config.custom_font_file_warning {
+                let mut live = (**Hachimi::instance().config.load()).clone();
+                if !live.custom_font_file_warning {
+                    live.custom_font_file_warning = true;
+                    let _ = Hachimi::instance().save_and_reload_config(live);
+                }
+            }
             let config_locale = Hachimi::instance().config.load().language.locale_str();
             if config_locale != &*rust_i18n::locale() {
                 rust_i18n::set_locale(config_locale);
